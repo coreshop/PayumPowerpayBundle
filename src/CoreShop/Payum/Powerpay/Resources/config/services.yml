@@ -1,0 +1,22 @@
+services:
+
+    CoreShop\Payum\PowerpayBundle\Extension\ConvertPaymentExtension:
+        autowire: true
+        tags:
+            - { name: payum.extension, alias: powerpay_language_extension, factory: powerpay, gateway: powerpay, prepend: false }
+
+    CoreShop\Payum\PowerpayBundle\Form\Payment\PowerpaySettingsType:
+        tags:
+            - { name: coreshop.payment.form.settings, payum-factory: powerpay }
+            - { name: form.type }
+
+    CoreShop\Payum\PowerpayBundle\Form\Payment\PowerpayType:
+        tags:
+            - { name: coreshop.gateway_configuration_type, type: powerpay }
+            - { name: form.type }
+
+    payum.powerpay_gateway_factory:
+        class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
+        arguments: [DachcomDigital\Payum\Powerpay\PowerpayGatewayFactory]
+        tags:
+            - {name: payum.gateway_factory_builder, factory: powerpay }

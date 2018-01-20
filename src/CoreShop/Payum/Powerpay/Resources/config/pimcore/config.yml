@@ -1,0 +1,4 @@
+core_shop_payment:
+    pimcore_admin:
+        js:
+            powerpay: /bundles/powerpay/pimcore/js/powerpay.js

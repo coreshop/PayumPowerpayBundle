@@ -1,0 +1,43 @@
+{
+    "name": "coreshop/payum-powerpay-bundle",
+    "type": "pimcore-bundle",
+    "description": "CoreShop - Powerpay Bundle",
+    "keywords": [
+        "coreshop",
+        "pimcore",
+        "ecommerce",
+        "powerpay"
+    ],
+    "homepage": "http://www.coreshop.org",
+    "license": "GPLv3",
+    "authors": [
+        {
+            "name": "DACHCOM.DIGITAL Stefan Hagspiel",
+            "email": "shagspiel@dachcom.ch",
+            "homepage": "http://www.dachcom.com/",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.0",
+        "dachcom-digital/payum-powerpay": "dev-master"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-4": {
+            "CoreShop\\Payum\\PowerpayBundle\\": "src/CoreShop/Payum/Powerpay"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        },
+        "pimcore": {
+            "bundles": [
+                "CoreShop\\Payum\\PowerpayBundle\\PowerpayBundle"
+            ]
+        }
+    }
+}

@@ -1,0 +1,7 @@
+powerpay.config.environment: 'Umgebung'
+powerpay.config.username: 'Username'
+powerpay.config.password: 'Passwort'
+powerpay.config.merchant_id: 'Merchant ID'
+powerpay.config.filial_id: 'Filial ID'
+powerpay.config.terminal_id: 'Terminal ID'
+powerpay.config.optional_parameter: 'Optional Parameters'
