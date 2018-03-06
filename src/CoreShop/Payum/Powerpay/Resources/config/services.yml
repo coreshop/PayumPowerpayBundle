@@ -1,9 +1,17 @@
 services:
 
-    CoreShop\Payum\PowerpayBundle\Extension\ConvertPaymentExtension:
-        autowire: true
+    CoreShop\Payum\PowerpayBundle\Extension\CustomerTransformerExtension:
+        arguments:
+            - '@coreshop.repository.order'
         tags:
-            - { name: payum.extension, alias: powerpay_language_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_customer_transformer_extension, factory: powerpay, gateway: powerpay, prepend: false }
+
+    CoreShop\Payum\PowerpayBundle\Extension\ConfirmPaymentExtension:
+        arguments:
+            - '@coreshop.repository.order'
+            - '@coreshop.workflow.order_history_logger'
+        tags:
+            - { name: payum.extension, alias: powerpay_confirm_extension, factory: powerpay, gateway: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Form\Payment\PowerpaySettingsType:
         tags:
@@ -14,6 +22,11 @@ services:
         tags:
             - { name: coreshop.gateway_configuration_type, type: powerpay }
             - { name: form.type }
+
+    CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent:
+        arguments:
+            - '@payum'
+            - '@coreshop.repository.payment'
 
     payum.powerpay_gateway_factory:
         class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder

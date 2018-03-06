@@ -2,3 +2,13 @@ core_shop_payment:
     pimcore_admin:
         js:
             powerpay: /bundles/powerpay/pimcore/js/powerpay.js
+
+core_shop_workflow:
+    state_machine:
+        coreshop_order_invoice:
+            callbacks:
+                after:
+                    confirm_powerpay_payment:
+                        on: ['invoice']
+                        do: ['@CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent', 'confirm']
+                        args: ['object']

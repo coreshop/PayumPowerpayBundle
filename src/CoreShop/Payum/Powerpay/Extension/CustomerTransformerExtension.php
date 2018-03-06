@@ -15,12 +15,12 @@ namespace CoreShop\Payum\PowerpayBundle\Extension;
 use CoreShop\Component\Order\Model\OrderInterface;
 use CoreShop\Component\Order\Repository\OrderRepositoryInterface;
 use CoreShop\Component\Payment\Model\PaymentInterface;
+use DachcomDigital\Payum\Powerpay\Request\Api\Transformer\CustomerTransformer;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
-use Payum\Core\Request\Convert;
 
-final class ConvertPaymentExtension implements ExtensionInterface
+final class CustomerTransformerExtension implements ExtensionInterface
 {
     /**
      * @var OrderRepositoryInterface
@@ -48,39 +48,38 @@ final class ConvertPaymentExtension implements ExtensionInterface
         $action = $context->getAction();
 
         $previousActionClassName = get_class($action);
-        if (false === stripos($previousActionClassName, 'ConvertPaymentAction')) {
+        if (false === stripos($previousActionClassName, 'CustomerTransformer')) {
             return;
         }
 
-        /** @var Convert $request */
+        /** @var CustomerTransformer $request */
         $request = $context->getRequest();
-        if (false === $request instanceof Convert) {
+        if (false === $request instanceof CustomerTransformer) {
             return;
         }
 
         /** @var PaymentInterface $payment */
-        $payment = $request->getSource();
+        $payment = $request->getFirstModel();
         if (false === $payment instanceof PaymentInterface) {
             return;
         }
 
         /** @var OrderInterface $order */
         $order = $this->orderRepository->find($payment->getOrderId());
+        $details = ArrayObject::ensureArrayObject($request->getModel());
 
-        $result = ArrayObject::ensureArrayObject($request->getResult());
+        $request->setBirthDate($details['birthdate']);
 
-        $result['language'] = $this->getOrderLanguage($order);
-        $result['address'] = $this->getAddressData($order);
-
-        $request->setResult((array)$result);
+        $this->setLanguage($order, $request);
+        $this->setAddressData($order, $request);
 
     }
 
     /**
      * @param OrderInterface $order
-     * @return string
+     * @param CustomerTransformer $request
      */
-    private function getOrderLanguage($order)
+    private function setLanguage($order, $request)
     {
         $defaultLanguage = 'en';
         $gatewayOrderLanguage = $defaultLanguage;
@@ -99,32 +98,29 @@ final class ConvertPaymentExtension implements ExtensionInterface
             $gatewayOrderLanguage = $defaultLanguage;
         }
 
-        return strtolower($gatewayOrderLanguage);
+        $request->setLanguage(strtolower($gatewayOrderLanguage));
+
     }
 
     /**
      * @param OrderInterface $order
-     * @return array
+     * @param CustomerTransformer $request
      */
-    private function getAddressData($order)
+    private function setAddressData($order, $request)
     {
         $customer = $order->getCustomer();
         $address = $order->getInvoiceAddress();
         /** @var \CoreShop\Component\Core\Model\Country $country */
         $country = $address->getCountry();
 
-        $address = [
-            'gender'    => $customer->getGender(),
-            'email'     => $customer->getEmail(),
-            'firstName' => $address->getFirstname(),
-            'lastName'  => $address->getLastName(),
-            'street'    => $address->getStreet(),
-            'city'      => $address->getCity(),
-            'zip'       => $address->getPostcode(),
-            'country'   => $country->getIsoCode()
-        ];
-
-        return $address;
+        $request->setGender($customer->getGender());
+        $request->setEmail($customer->getEmail());
+        $request->setFirstName($address->getFirstname());
+        $request->setLastName($address->getLastName());
+        $request->setStreet($address->getStreet() . ' ' . $address->getNumber());
+        $request->setCity($address->getCity());
+        $request->setZip($address->getPostcode());
+        $request->setCountry($country->getIsoCode());
     }
 
     /**
