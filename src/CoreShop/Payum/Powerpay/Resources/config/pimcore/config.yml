@@ -5,6 +5,13 @@ core_shop_payment:
 
 core_shop_workflow:
     state_machine:
+        coreshop_payment:
+            callbacks:
+                after:
+                    cancel_powerpay_payment:
+                        on: ['cancel']
+                        do: ['@CoreShop\Payum\PowerpayBundle\Event\CancelEvent', 'cancel']
+                        args: ['object']
         coreshop_order_invoice:
             callbacks:
                 after:
