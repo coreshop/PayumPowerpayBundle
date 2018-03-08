@@ -25,3 +25,14 @@ Add Invoice State to allow Order Completion:
 parameters:
     coreshop.workflow.include_invoice_state_to_complete_order: true
 ```
+
+## How-To
+
+### Confirm Payment
+To confirm a payment you need to create an invoice and apply the `complete` transition.
+All items from the PowerPay Payment Item will be transmitted. You'll see a success log in the order history log section.
+
+### Cancel Payment
+If you need to cancel a payment just cancel the payment itself. You'll see a success log in the order history log section.
+**Note**: This works only if a payment hasn't confirmed yet.
+

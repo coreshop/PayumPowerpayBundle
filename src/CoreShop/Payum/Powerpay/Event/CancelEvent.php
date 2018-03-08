@@ -12,6 +12,7 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Event;
 
+use CoreShop\Component\Payment\Model\Payment;
 use CoreShop\Component\Payment\Model\PaymentInterface;
 use CoreShop\Component\Resource\Repository\RepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Cancel;
@@ -47,6 +48,10 @@ class CancelEvent
      */
     public function cancel(PaymentInterface $payment)
     {
+        if ($payment->getState() !== Payment::STATE_CANCELLED) {
+            return;
+        }
+
         $factoryName = $payment->getPaymentProvider()->getGatewayConfig()->getFactoryName();
         if ($factoryName !== 'powerpay') {
             return;

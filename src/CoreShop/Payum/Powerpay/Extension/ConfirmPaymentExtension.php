@@ -74,8 +74,10 @@ final class ConfirmPaymentExtension implements ExtensionInterface
             $this->orderHistoryLogger->log($orderId, 'PowerPay error. Response Code: ' . $result['response_code']);
         } else {
             $description = '';
-            foreach($result as $lineTitle => $lineValue) {
-                $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
+            if (is_array($result)) {
+                foreach ($result as $lineTitle => $lineValue) {
+                    $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
+                }
             }
 
             $this->orderHistoryLogger->log($orderId, 'PowerPay Payment successfully submitted', $description);
