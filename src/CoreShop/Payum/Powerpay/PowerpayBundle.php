@@ -17,6 +17,8 @@ use Pimcore\Extension\Bundle\Traits\PackageVersionTrait;
 
 class PowerpayBundle extends AbstractPimcoreBundle
 {
+    use PackageVersionTrait;
+
     /**
      * @inheritDoc
      */
