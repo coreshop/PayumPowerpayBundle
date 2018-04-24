@@ -7,7 +7,7 @@ It requires the [dachcom-digital/payum-powerpay](https://github.com/dachcom-digi
 #### 1. Composer
 
 ```json
-    "coreshop/payum-powerpay-bundle": "dev-master"
+    "coreshop/payum-powerpay-bundle": "~1.0.0"
 ```
 
 #### 2. Activate

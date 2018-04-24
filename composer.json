@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": "^7.0",
-        "dachcom-digital/payum-powerpay": "dev-master"
+        "dachcom-digital/payum-powerpay": "~1.0.0"
     },
     "config": {
         "bin-dir": "bin"
