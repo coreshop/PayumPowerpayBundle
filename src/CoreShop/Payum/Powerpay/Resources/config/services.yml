@@ -20,6 +20,12 @@ services:
         tags:
             - { name: payum.extension, alias: powerpay_cancel_extension, factory: powerpay, gateway: powerpay, prepend: false }
 
+    CoreShop\Payum\PowerpayBundle\Extension\FailedPaymentExtension:
+        arguments:
+            - '@pimcore.translator'
+        tags:
+            - { name: payum.extension, alias: powerpay_failed_extension, factory: powerpay, gateway: powerpay, prepend: false }
+
     CoreShop\Payum\PowerpayBundle\Form\Payment\PowerpaySettingsType:
         tags:
             - { name: coreshop.payment.form.settings, payum-factory: powerpay }
