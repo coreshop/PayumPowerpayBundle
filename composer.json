@@ -9,7 +9,7 @@
         "powerpay"
     ],
     "homepage": "http://www.coreshop.org",
-    "license": "GPL-3.0-only",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "DACHCOM.DIGITAL Stefan Hagspiel",
