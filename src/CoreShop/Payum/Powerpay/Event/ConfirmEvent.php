@@ -54,11 +54,6 @@ class ConfirmEvent
         $payment = null;
         /** @var PaymentInterface $orderPayment */
         foreach ($payments as $orderPayment) {
-
-            if($orderPayment->getState() !== Payment::STATE_PROCESSING) {
-                continue;
-            }
-
             $factoryName = $orderPayment->getPaymentProvider()->getGatewayConfig()->getFactoryName();
             if($factoryName === 'powerpay') {
                 $payment = $orderPayment;
@@ -70,8 +65,11 @@ class ConfirmEvent
             return;
         }
 
-        $saferpay = $this->payum->getGateway('powerpay');
-        $saferpay->execute(new Confirm($payment));
+        if ($payment->getState() !== Payment::STATE_COMPLETED) {
+            return;
+        }
 
+        $powerpay = $this->payum->getGateway('powerpay');
+        $powerpay->execute(new Confirm($payment));
     }
 }
