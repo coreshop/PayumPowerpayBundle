@@ -15,13 +15,13 @@ namespace CoreShop\Payum\PowerpayBundle\Extension;
 use CoreShop\Bundle\OrderBundle\Workflow\OrderHistoryLogger;
 use CoreShop\Component\Core\Model\PaymentInterface;
 use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
-use DachcomDigital\Payum\Powerpay\Request\Api\Cancel;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
+use DachcomDigital\Payum\Powerpay\Request\Api\CreditAmount;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
 use Payum\Core\Security\TokenInterface;
 
-final class CancelPaymentExtension implements ExtensionInterface
+final class RefundPaymentExtension implements ExtensionInterface
 {
     /**
      * @var PaymentRepositoryInterface
@@ -52,13 +52,13 @@ final class CancelPaymentExtension implements ExtensionInterface
 
         $previousActionClassName = get_class($action);
 
-        if (false === stripos($previousActionClassName, 'CancelAction')) {
+        if (false === stripos($previousActionClassName, 'CreditAmountAction')) {
             return;
         }
 
         /** @var Confirm $request */
         $request = $context->getRequest();
-        if (false === $request instanceof Cancel) {
+        if (false === $request instanceof CreditAmount) {
             return;
         }
 
@@ -78,17 +78,18 @@ final class CancelPaymentExtension implements ExtensionInterface
         $orderId = $payment->getOrder()->getId();
         $result = $request->getResult();
 
-        if (isset($result['cancel_skipped']) && $result['cancel_skipped'] === true) {
-            $this->orderHistoryLogger->log($orderId, 'PowerPay Payment cancellation skipped. Reason: ' . $result['cancel_skipped_reason']);
-        } elseif (isset($result['cancel_response_code'])) {
-            $this->orderHistoryLogger->log($orderId, 'PowerPay cancellation error. Response Code: ' . $result['cancel_response_code']);
-        } else {
-            $description = '';
-            foreach ($result as $lineTitle => $lineValue) {
-                $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
-            }
+        if (isset($result['credit_response_code']) && !empty($result['credit_response_code'])) {
+            if ($result['credit_response_code'] === '00') {
+                $description = '';
+                foreach ($result as $lineTitle => $lineValue) {
+                    $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
+                }
 
-            $this->orderHistoryLogger->log($orderId, 'PowerPay Payment successfully cancelled', $description);
+                $this->orderHistoryLogger->log($orderId, 'PowerPay Payment successfully refunded (via credit)', $description);
+
+            } else {
+                $this->orderHistoryLogger->log($orderId, 'PowerPay refunding error. Response Code: ' . $result['credit_response_code']);
+            }
         }
     }
 

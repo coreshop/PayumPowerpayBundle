@@ -21,6 +21,12 @@ coreshop.provider.gateways.powerpay = Class.create(coreshop.provider.gateways.ab
                 ['test', 'Test'],
                 ['production', 'Production']
             ]
+        }), confirmationMethods = new Ext.data.ArrayStore({
+            fields: ['confirmationType', 'confirmationName'],
+            data: [
+                ['instant', 'Instant'],
+                ['shipped', 'After Order has been shipped']
+            ]
         });
 
         var optionalFields = [{
@@ -78,6 +84,19 @@ coreshop.provider.gateways.powerpay = Class.create(coreshop.provider.gateways.ab
                 name: 'gatewayConfig.config.terminalId',
                 length: 255,
                 value: config.terminalId ? config.terminalId : ''
+            },
+            {
+                xtype: 'combobox',
+                fieldLabel: t('powerpay.config.confirmation_method'),
+                name: 'gatewayConfig.config.confirmationMethod',
+                value: config.confirmationMethod ? config.confirmationMethod : '',
+                store: confirmationMethods,
+                triggerAction: 'all',
+                valueField: 'confirmationType',
+                displayField: 'confirmationName',
+                mode: 'local',
+                forceSelection: true,
+                selectOnFocus: true
             },
             {
                 xtype: 'fieldset',

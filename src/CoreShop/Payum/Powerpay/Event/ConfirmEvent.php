@@ -54,18 +54,24 @@ class ConfirmEvent
         $payment = null;
         /** @var PaymentInterface $orderPayment */
         foreach ($payments as $orderPayment) {
-            $factoryName = $orderPayment->getPaymentProvider()->getGatewayConfig()->getFactoryName();
-            if($factoryName === 'powerpay') {
+            $gatewayConfig = $orderPayment->getPaymentProvider()->getGatewayConfig();
+            $factoryName = $gatewayConfig->getFactoryName();
+            if ($factoryName === 'powerpay') {
                 $payment = $orderPayment;
                 break;
             }
         }
 
-        if(!$payment instanceof PaymentInterface) {
+        if (!$payment instanceof PaymentInterface) {
             return;
         }
 
         if ($payment->getState() !== Payment::STATE_COMPLETED) {
+            return;
+        }
+
+        $config = $gatewayConfig->getConfig();
+        if ($config['confirmationMethod'] !== 'shipped') {
             return;
         }
 

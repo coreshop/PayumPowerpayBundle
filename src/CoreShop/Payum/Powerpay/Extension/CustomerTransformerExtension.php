@@ -12,9 +12,8 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
+use CoreShop\Component\Core\Model\PaymentInterface;
 use CoreShop\Component\Order\Model\OrderInterface;
-use CoreShop\Component\Order\Repository\OrderRepositoryInterface;
-use CoreShop\Component\Payment\Model\PaymentInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Transformer\CustomerTransformer;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Payum\Core\Extension\Context;
@@ -23,22 +22,9 @@ use Payum\Core\Extension\ExtensionInterface;
 final class CustomerTransformerExtension implements ExtensionInterface
 {
     /**
-     * @var OrderRepositoryInterface
-     */
-    private $orderRepository;
-
-    /**
      * @var array
      */
     protected $validLanguages = ['en', 'de', 'fr', 'it'];
-
-    /**
-     * @param OrderRepositoryInterface $orderRepository
-     */
-    public function __construct(OrderRepositoryInterface $orderRepository)
-    {
-        $this->orderRepository = $orderRepository;
-    }
 
     /**
      * @param Context $context
@@ -65,7 +51,7 @@ final class CustomerTransformerExtension implements ExtensionInterface
         }
 
         /** @var OrderInterface $order */
-        $order = $this->orderRepository->find($payment->getOrderId());
+        $order = $payment->getOrder();
         $details = ArrayObject::ensureArrayObject($request->getModel());
 
         $request->setBirthDate($details['birthdate']);
@@ -84,8 +70,8 @@ final class CustomerTransformerExtension implements ExtensionInterface
         $defaultLanguage = 'en';
         $gatewayOrderLanguage = $defaultLanguage;
 
-        if (!empty($order->getOrderLanguage())) {
-            $orderLanguage = $order->getOrderLanguage();
+        if (!empty($order->getLocaleCode())) {
+            $orderLanguage = $order->getLocaleCode();
             if (strpos($orderLanguage, '_') !== false) {
                 $orderLanguage = explode('_', $orderLanguage);
                 $gatewayOrderLanguage = $orderLanguage[0];

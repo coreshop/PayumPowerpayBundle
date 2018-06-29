@@ -13,12 +13,8 @@
 namespace CoreShop\Payum\PowerpayBundle\Form\Payment;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class PowerpayType extends AbstractType
@@ -70,6 +66,12 @@ final class PowerpayType extends AbstractType
                         'groups' => 'coreshop',
                     ]),
                 ],
+            ])->add('confirmationMethod', TextType::class, [
+                'constraints' => [
+                    new NotBlank([
+                        'groups' => 'coreshop',
+                    ]),
+                ]
             ]);
 
     }

@@ -14,10 +14,10 @@ namespace CoreShop\Payum\PowerpayBundle\Event;
 
 use CoreShop\Component\Payment\Model\Payment;
 use CoreShop\Component\Payment\Model\PaymentInterface;
-use DachcomDigital\Payum\Powerpay\Request\Api\Cancel;
+use DachcomDigital\Payum\Powerpay\Request\Api\CreditAmount;
 use Payum\Core\Payum;
 
-class CancelEvent
+class RefundEvent
 {
     /**
      * @var Payum
@@ -38,7 +38,7 @@ class CancelEvent
      * @param PaymentInterface $payment
      * @throws \Payum\Core\Reply\ReplyInterface
      */
-    public function cancel(PaymentInterface $payment)
+    public function refund(PaymentInterface $payment)
     {
         if ($payment->getState() !== Payment::STATE_COMPLETED) {
             return;
@@ -50,7 +50,6 @@ class CancelEvent
         }
 
         $powerpay = $this->payum->getGateway('powerpay');
-        $powerpay->execute(new Cancel($payment));
-
+        $powerpay->execute(new CreditAmount($payment));
     }
 }

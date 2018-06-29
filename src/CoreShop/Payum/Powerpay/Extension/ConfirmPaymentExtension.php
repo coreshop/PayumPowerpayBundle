@@ -13,30 +13,32 @@
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
 use CoreShop\Bundle\OrderBundle\Workflow\OrderHistoryLogger;
-use CoreShop\Component\Order\Repository\OrderRepositoryInterface;
-use CoreShop\Component\Payment\Model\PaymentInterface;
+use CoreShop\Component\Core\Model\PaymentInterface;
+use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
+use Payum\Core\Security\TokenInterface;
 
 final class ConfirmPaymentExtension implements ExtensionInterface
 {
     /**
-     * @var OrderRepositoryInterface
+     * @var PaymentRepositoryInterface
      */
-    private $orderRepository;
+    private $paymentRepository;
+
     /**
      * @var OrderHistoryLogger
      */
     private $orderHistoryLogger;
 
     /**
-     * @param OrderRepositoryInterface $orderRepository
-     * @param OrderHistoryLogger       $orderHistoryLogger
+     * @param PaymentRepositoryInterface $paymentRepository
+     * @param OrderHistoryLogger         $orderHistoryLogger
      */
-    public function __construct(OrderRepositoryInterface $orderRepository, OrderHistoryLogger $orderHistoryLogger)
+    public function __construct(PaymentRepositoryInterface $paymentRepository, OrderHistoryLogger $orderHistoryLogger)
     {
-        $this->orderRepository = $orderRepository;
+        $this->paymentRepository = $paymentRepository;
         $this->orderHistoryLogger = $orderHistoryLogger;
     }
 
@@ -59,13 +61,20 @@ final class ConfirmPaymentExtension implements ExtensionInterface
             return;
         }
 
+        $payment = false;
+        if ($request->getToken() instanceof TokenInterface) {
+            $paymentId = $request->getToken()->getDetails()->getId();
+            $payment = $this->paymentRepository->find($paymentId);
+        } elseif ($request->getFirstModel() instanceof PaymentInterface) {
+            $payment = $request->getFirstModel();
+        }
+
         /** @var PaymentInterface $payment */
-        $payment = $request->getFirstModel();
         if (false === $payment instanceof PaymentInterface) {
             return;
         }
 
-        $orderId = $payment->getOrderId();
+        $orderId = $payment->getOrder()->getId();
         $result = $request->getResult();
 
         if (isset($result['skipped']) && $result['skipped'] === true) {
