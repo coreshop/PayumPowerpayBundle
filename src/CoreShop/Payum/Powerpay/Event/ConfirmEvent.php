@@ -15,7 +15,7 @@ namespace CoreShop\Payum\PowerpayBundle\Event;
 use CoreShop\Component\Core\Model\OrderInterface;
 use CoreShop\Component\Payment\Model\Payment;
 use CoreShop\Component\Payment\Model\PaymentInterface;
-use CoreShop\Component\Resource\Repository\RepositoryInterface;
+use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
 use Payum\Core\Payum;
 
@@ -27,17 +27,17 @@ class ConfirmEvent
     protected $payum;
 
     /**
-     * @var RepositoryInterface
+     * @var PaymentRepositoryInterface
      */
     protected $paymentRepository;
 
     /**
      * ConfirmEvent constructor.
      *
-     * @param Payum               $payum
-     * @param RepositoryInterface $paymentRepository
+     * @param Payum                      $payum
+     * @param PaymentRepositoryInterface $paymentRepository
      */
-    public function __construct(Payum $payum, RepositoryInterface $paymentRepository)
+    public function __construct(Payum $payum, PaymentRepositoryInterface $paymentRepository)
     {
         $this->payum = $payum;
         $this->paymentRepository = $paymentRepository;
@@ -45,11 +45,12 @@ class ConfirmEvent
 
     /**
      * @param OrderInterface $order
+     *
      * @throws \Payum\Core\Reply\ReplyInterface
      */
     public function confirm(OrderInterface $order)
     {
-        $payments = $this->paymentRepository->findForOrder($order);
+        $payments = $this->paymentRepository->findForPayable($order);
 
         $payment = null;
         /** @var PaymentInterface $orderPayment */
