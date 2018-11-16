@@ -8,6 +8,10 @@ core_shop_workflow:
         coreshop_payment:
             callbacks:
                 before:
+                    confirm_powerpay_payment:
+                        on: ['complete']
+                        do: ['@CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent', 'confirmByPayment']
+                        args: ['object']
                     cancel_powerpay_payment:
                         on: ['cancel']
                         do: ['@CoreShop\Payum\PowerpayBundle\Event\CancelEvent', 'cancel']
@@ -21,5 +25,5 @@ core_shop_workflow:
                 after:
                     confirm_powerpay_payment:
                         on: ['ship']
-                        do: ['@CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent', 'confirm']
+                        do: ['@CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent', 'confirmByOrder']
                         args: ['object']

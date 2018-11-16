@@ -36,11 +36,12 @@ class CancelEvent
 
     /**
      * @param PaymentInterface $payment
+     *
      * @throws \Payum\Core\Reply\ReplyInterface
      */
     public function cancel(PaymentInterface $payment)
     {
-        if ($payment->getState() !== Payment::STATE_COMPLETED) {
+        if ($payment->getState() !== Payment::STATE_PROCESSING) {
             return;
         }
 

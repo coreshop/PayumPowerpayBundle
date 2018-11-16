@@ -18,9 +18,15 @@ use CoreShop\Component\Payment\Model\PaymentInterface;
 use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
 use Payum\Core\Payum;
+use Payum\Core\Request\GetHumanStatus;
 
 class ConfirmEvent
 {
+    /**
+     * @var bool
+     */
+    protected $processing = false;
+
     /**
      * @var Payum
      */
@@ -48,13 +54,16 @@ class ConfirmEvent
      *
      * @throws \Payum\Core\Reply\ReplyInterface
      */
-    public function confirm(OrderInterface $order)
+    public function confirmByOrder(OrderInterface $order)
     {
         $payments = $this->paymentRepository->findForPayable($order);
 
         $payment = null;
         /** @var PaymentInterface $orderPayment */
         foreach ($payments as $orderPayment) {
+            if ($orderPayment->getState() !== Payment::STATE_PROCESSING) {
+                continue;
+            }
             $gatewayConfig = $orderPayment->getPaymentProvider()->getGatewayConfig();
             $factoryName = $gatewayConfig->getFactoryName();
             if ($factoryName === 'powerpay') {
@@ -67,15 +76,42 @@ class ConfirmEvent
             return;
         }
 
-        if ($payment->getState() !== Payment::STATE_COMPLETED) {
-            return;
-        }
-
         $config = $gatewayConfig->getConfig();
         if ($config['confirmationMethod'] !== 'shipped') {
             return;
         }
 
+        if ($this->processing === true) {
+            return;
+        }
+
+        $this->processing = true;
+        $powerpay = $this->payum->getGateway('powerpay');
+        $powerpay->execute(new Confirm($payment));
+        $powerpay->execute($status = new GetHumanStatus($payment));
+    }
+
+    /**
+     * @param PaymentInterface $payment
+     *
+     * @throws \Payum\Core\Reply\ReplyInterface
+     */
+    public function confirmByPayment(PaymentInterface $payment)
+    {
+        if ($payment->getState() !== Payment::STATE_PROCESSING) {
+            return;
+        }
+
+        $factoryName = $payment->getPaymentProvider()->getGatewayConfig()->getFactoryName();
+        if ($factoryName !== 'powerpay') {
+            return;
+        }
+
+        if ($this->processing === true) {
+            return;
+        }
+
+        $this->processing = true;
         $powerpay = $this->payum->getGateway('powerpay');
         $powerpay->execute(new Confirm($payment));
     }
