@@ -25,7 +25,7 @@ class ConfirmEvent
     /**
      * @var bool
      */
-    protected $processing = false;
+    protected $processIsRunning = false;
 
     /**
      * @var Payum
@@ -81,14 +81,15 @@ class ConfirmEvent
             return;
         }
 
-        if ($this->processing === true) {
+        if ($this->processIsRunning === true) {
             return;
         }
 
-        $this->processing = true;
+        $this->processIsRunning = true;
         $powerpay = $this->payum->getGateway('powerpay');
         $powerpay->execute(new Confirm($payment));
         $powerpay->execute($status = new GetHumanStatus($payment));
+        $this->processIsRunning = false;
     }
 
     /**
@@ -107,12 +108,13 @@ class ConfirmEvent
             return;
         }
 
-        if ($this->processing === true) {
+        if ($this->processIsRunning === true) {
             return;
         }
 
-        $this->processing = true;
+        $this->processIsRunning = true;
         $powerpay = $this->payum->getGateway('powerpay');
         $powerpay->execute(new Confirm($payment));
+        $this->processIsRunning = false;
     }
 }
