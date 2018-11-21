@@ -61,9 +61,11 @@ class ConfirmEvent
         $payment = null;
         /** @var PaymentInterface $orderPayment */
         foreach ($payments as $orderPayment) {
-            if ($orderPayment->getState() !== Payment::STATE_PROCESSING) {
+
+            if (!in_array($orderPayment->getState(), [Payment::STATE_AUTHORIZED, Payment::STATE_PROCESSING])) {
                 continue;
             }
+
             $gatewayConfig = $orderPayment->getPaymentProvider()->getGatewayConfig();
             $factoryName = $gatewayConfig->getFactoryName();
             if ($factoryName === 'powerpay') {
@@ -99,7 +101,7 @@ class ConfirmEvent
      */
     public function confirmByPayment(PaymentInterface $payment)
     {
-        if ($payment->getState() !== Payment::STATE_PROCESSING) {
+        if (!in_array($payment->getState(), [Payment::STATE_AUTHORIZED, Payment::STATE_PROCESSING])) {
             return;
         }
 
