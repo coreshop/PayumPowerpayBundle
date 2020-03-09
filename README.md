@@ -32,4 +32,4 @@ You'll see a success log in the order history log section.
 **Note**: This works only if a payment hasn't confirmed yet.
 
 ## Upgrade Notes
-- v1.0.3: transmit phoneNumber
+- v1.0.4: transmit phoneNumber
