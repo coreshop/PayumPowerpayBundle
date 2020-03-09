@@ -31,3 +31,5 @@ If you need to cancel a payment just cancel the payment itself.
 You'll see a success log in the order history log section.
 **Note**: This works only if a payment hasn't confirmed yet.
 
+## Upgrade Notes
+- v1.0.3: transmit phoneNumber

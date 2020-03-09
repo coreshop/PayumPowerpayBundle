@@ -12,6 +12,7 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
+use CoreShop\Component\Core\Model\Country;
 use CoreShop\Component\Core\Model\PaymentInterface;
 use CoreShop\Component\Order\Model\OrderInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Transformer\CustomerTransformer;
@@ -96,7 +97,7 @@ final class CustomerTransformerExtension implements ExtensionInterface
     {
         $customer = $order->getCustomer();
         $address = $order->getInvoiceAddress();
-        /** @var \CoreShop\Component\Core\Model\Country $country */
+        /** @var Country $country */
         $country = $address->getCountry();
 
         $request->setGender($customer->getGender());
@@ -106,6 +107,7 @@ final class CustomerTransformerExtension implements ExtensionInterface
         $request->setStreet($address->getStreet() . ' ' . $address->getNumber());
         $request->setCity($address->getCity());
         $request->setZip($address->getPostcode());
+        $request->setPhoneNumber((string) $address->getPhoneNumber());
         $request->setCountry($country->getIsoCode());
     }
 
