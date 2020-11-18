@@ -88,9 +88,16 @@ class ConfirmEvent
         }
 
         $this->processIsRunning = true;
-        $powerpay = $this->payum->getGateway('powerpay');
-        $powerpay->execute(new Confirm($payment));
-        $powerpay->execute($status = new GetHumanStatus($payment));
+
+        try {
+            $powerpay = $this->payum->getGateway('powerpay');
+            $powerpay->execute(new Confirm($payment));
+            $powerpay->execute($status = new GetHumanStatus($payment));
+        } catch (\Throwable $e) {
+            $this->processIsRunning = false;
+            throw $e;
+        }
+
         $this->processIsRunning = false;
     }
 
@@ -115,8 +122,15 @@ class ConfirmEvent
         }
 
         $this->processIsRunning = true;
-        $powerpay = $this->payum->getGateway('powerpay');
-        $powerpay->execute(new Confirm($payment));
+
+        try {
+            $powerpay = $this->payum->getGateway('powerpay');
+            $powerpay->execute(new Confirm($payment));
+        } catch (\Throwable $e) {
+            $this->processIsRunning = false;
+            throw $e;
+        }
+
         $this->processIsRunning = false;
     }
 }
