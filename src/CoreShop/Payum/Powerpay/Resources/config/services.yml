@@ -42,15 +42,18 @@ services:
             - { name: form.type }
 
     CoreShop\Payum\PowerpayBundle\Event\ConfirmEvent:
+        public: true
         arguments:
             - '@payum'
             - '@coreshop.repository.payment'
 
     CoreShop\Payum\PowerpayBundle\Event\CancelEvent:
+        public: true
         arguments:
             - '@payum'
 
     CoreShop\Payum\PowerpayBundle\Event\RefundEvent:
+        public: true
         arguments:
             - '@payum'
 
