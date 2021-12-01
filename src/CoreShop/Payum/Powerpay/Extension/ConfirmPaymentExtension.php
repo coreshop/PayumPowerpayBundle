@@ -12,7 +12,7 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
-use CoreShop\Bundle\OrderBundle\Workflow\OrderHistoryLogger;
+use CoreShop\Bundle\WorkflowBundle\History\HistoryLoggerInterface;
 use CoreShop\Component\Core\Model\PaymentInterface;
 use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
@@ -28,15 +28,15 @@ final class ConfirmPaymentExtension implements ExtensionInterface
     private $paymentRepository;
 
     /**
-     * @var OrderHistoryLogger
+     * @var HistoryLoggerInterface
      */
     private $orderHistoryLogger;
 
     /**
      * @param PaymentRepositoryInterface $paymentRepository
-     * @param OrderHistoryLogger         $orderHistoryLogger
+     * @param HistoryLoggerInterface         $orderHistoryLogger
      */
-    public function __construct(PaymentRepositoryInterface $paymentRepository, OrderHistoryLogger $orderHistoryLogger)
+    public function __construct(PaymentRepositoryInterface $paymentRepository, HistoryLoggerInterface $orderHistoryLogger)
     {
         $this->paymentRepository = $paymentRepository;
         $this->orderHistoryLogger = $orderHistoryLogger;
@@ -74,13 +74,12 @@ final class ConfirmPaymentExtension implements ExtensionInterface
             return;
         }
 
-        $orderId = $payment->getOrder()->getId();
         $result = $request->getResult();
 
         if (isset($result['skipped']) && $result['skipped'] === true) {
-            $this->orderHistoryLogger->log($orderId, 'PowerPay Payment skipped. Reason: ' . $result['skipped_reason']);
+            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment skipped. Reason: ' . $result['skipped_reason']);
         } elseif (isset($result['response_code'])) {
-            $this->orderHistoryLogger->log($orderId, 'PowerPay error. Response Code: ' . $result['response_code']);
+            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay error. Response Code: ' . $result['response_code']);
         } else {
             $description = '';
             if (is_array($result)) {
@@ -89,7 +88,7 @@ final class ConfirmPaymentExtension implements ExtensionInterface
                 }
             }
 
-            $this->orderHistoryLogger->log($orderId, 'PowerPay Payment successfully submitted', $description);
+            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment successfully submitted', $description);
         }
     }
 

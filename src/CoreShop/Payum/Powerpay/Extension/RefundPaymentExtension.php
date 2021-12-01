@@ -12,7 +12,7 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
-use CoreShop\Bundle\OrderBundle\Workflow\OrderHistoryLogger;
+use CoreShop\Bundle\WorkflowBundle\History\HistoryLoggerInterface;
 use CoreShop\Component\Core\Model\PaymentInterface;
 use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
@@ -29,15 +29,15 @@ final class RefundPaymentExtension implements ExtensionInterface
     private $paymentRepository;
 
     /**
-     * @var OrderHistoryLogger
+     * @var HistoryLoggerInterface
      */
     private $orderHistoryLogger;
 
     /**
      * @param PaymentRepositoryInterface $paymentRepository
-     * @param OrderHistoryLogger         $orderHistoryLogger
+     * @param HistoryLoggerInterface     $orderHistoryLogger
      */
-    public function __construct(PaymentRepositoryInterface $paymentRepository, OrderHistoryLogger $orderHistoryLogger)
+    public function __construct(PaymentRepositoryInterface $paymentRepository, HistoryLoggerInterface $orderHistoryLogger)
     {
         $this->paymentRepository = $paymentRepository;
         $this->orderHistoryLogger = $orderHistoryLogger;
@@ -75,7 +75,6 @@ final class RefundPaymentExtension implements ExtensionInterface
             return;
         }
 
-        $orderId = $payment->getOrder()->getId();
         $result = $request->getResult();
 
         if (isset($result['credit_response_code']) && !empty($result['credit_response_code'])) {
@@ -85,10 +84,10 @@ final class RefundPaymentExtension implements ExtensionInterface
                     $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
                 }
 
-                $this->orderHistoryLogger->log($orderId, 'PowerPay Payment successfully refunded (via credit)', $description);
+                $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment successfully refunded (via credit)', $description);
 
             } else {
-                $this->orderHistoryLogger->log($orderId, 'PowerPay refunding error. Response Code: ' . $result['credit_response_code']);
+                $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay refunding error. Response Code: ' . $result['credit_response_code']);
             }
         }
     }
