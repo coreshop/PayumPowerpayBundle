@@ -12,74 +12,56 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
-use CoreShop\Bundle\WorkflowBundle\History\HistoryLoggerInterface;
 use CoreShop\Component\Core\Model\PaymentInterface;
-use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
+use Payum\Core\Model\Payment;
 use Payum\Core\Security\TokenInterface;
 
-final class ConfirmPaymentExtension implements ExtensionInterface
+final class ConfirmPaymentExtension extends AbstractExtension implements ExtensionInterface
 {
-    /**
-     * @var PaymentRepositoryInterface
-     */
-    private $paymentRepository;
-
-    /**
-     * @var HistoryLoggerInterface
-     */
-    private $orderHistoryLogger;
-
-    /**
-     * @param PaymentRepositoryInterface $paymentRepository
-     * @param HistoryLoggerInterface         $orderHistoryLogger
-     */
-    public function __construct(PaymentRepositoryInterface $paymentRepository, HistoryLoggerInterface $orderHistoryLogger)
-    {
-        $this->paymentRepository = $paymentRepository;
-        $this->orderHistoryLogger = $orderHistoryLogger;
-    }
-
-    /**
-     * @param Context $context
-     */
-    public function onPostExecute(Context $context)
+    public function onPostExecute(Context $context): void
     {
         $action = $context->getAction();
-
-        $previousActionClassName = get_class($action);
+        $previousActionClassName = is_object($action) ? get_class($action) : '';
 
         if (false === stripos($previousActionClassName, 'ConfirmAction')) {
             return;
         }
 
-        /** @var Confirm $request */
         $request = $context->getRequest();
-        if (false === $request instanceof Confirm) {
+        if (!$request instanceof Confirm) {
             return;
         }
 
-        $payment = false;
+        $paymentEntity = null;
         if ($request->getToken() instanceof TokenInterface) {
             $paymentId = $request->getToken()->getDetails()->getId();
-            $payment = $this->paymentRepository->find($paymentId);
+            $paymentEntity = $this->assertCoreShopPaymentById($paymentId);
+        } elseif ($request->getFirstModel() instanceof Payment) {
+            $paymentEntity = $this->assertCoreShopPayment($request->getFirstModel());
         } elseif ($request->getFirstModel() instanceof PaymentInterface) {
-            $payment = $request->getFirstModel();
+            $paymentEntity = $request->getFirstModel();
         }
 
-        /** @var PaymentInterface $payment */
-        if (false === $payment instanceof PaymentInterface) {
+        if (!$paymentEntity instanceof PaymentInterface) {
             return;
         }
 
+        $detail = $request->getModel();
         $result = $request->getResult();
 
+        if ($detail instanceof \ArrayObject && isset($detail['error_message'])) {
+            $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay error. ' . $detail['error_message']);
+
+            return;
+        }
+
         if (isset($result['skipped']) && $result['skipped'] === true) {
-            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment skipped. Reason: ' . $result['skipped_reason']);
+            $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay payment skipped. Reason: ' . $result['skipped_reason']);
         } elseif (isset($result['response_code'])) {
-            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay error. Response Code: ' . $result['response_code']);
+            $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay error. Response Code: ' . $result['response_code']);
         } else {
             $description = '';
             if (is_array($result)) {
@@ -88,22 +70,7 @@ final class ConfirmPaymentExtension implements ExtensionInterface
                 }
             }
 
-            $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment successfully submitted', $description);
+            $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay payment successfully submitted', $description);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function onPreExecute(Context $context)
-    {
-
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function onExecute(Context $context)
-    {
     }
 }

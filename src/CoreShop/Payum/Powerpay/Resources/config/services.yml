@@ -1,9 +1,12 @@
 services:
 
-    CoreShop\Payum\PowerpayBundle\Extension\CustomerTransformerExtension:
+    CoreShop\Payum\PowerpayBundle\Extension\ConvertPaymentExtension:
         public: true
+        arguments:
+            - '@coreshop.repository.payment'
+            - '@coreshop.workflow.history_logger'
         tags:
-            - { name: payum.extension, alias: powerpay_customer_transformer_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_customer_transformer_extension, factory: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Extension\ConfirmPaymentExtension:
         public: true
@@ -11,7 +14,7 @@ services:
             - '@coreshop.repository.payment'
             - '@coreshop.workflow.history_logger'
         tags:
-            - { name: payum.extension, alias: powerpay_confirm_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_confirm_extension, factory: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Extension\CancelPaymentExtension:
         public: true
@@ -19,7 +22,7 @@ services:
             - '@coreshop.repository.payment'
             - '@coreshop.workflow.history_logger'
         tags:
-            - { name: payum.extension, alias: powerpay_cancel_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_cancel_extension, factory: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Extension\RefundPaymentExtension:
         public: true
@@ -27,14 +30,16 @@ services:
             - '@coreshop.repository.payment'
             - '@coreshop.workflow.history_logger'
         tags:
-            - { name: payum.extension, alias: powerpay_refund_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_refund_extension, factory: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Extension\FailedPaymentExtension:
         public: true
         arguments:
-            - '@pimcore.translator'
+            - '@coreshop.repository.payment'
+            - '@coreshop.workflow.history_logger'
+            - '@translator'
         tags:
-            - { name: payum.extension, alias: powerpay_failed_extension, factory: powerpay, gateway: powerpay, prepend: false }
+            - { name: payum.extension, alias: powerpay_failed_extension, factory: powerpay, prepend: false }
 
     CoreShop\Payum\PowerpayBundle\Form\Payment\PowerpaySettingsType:
         tags:

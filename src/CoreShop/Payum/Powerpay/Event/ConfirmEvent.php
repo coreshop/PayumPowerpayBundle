@@ -22,47 +22,23 @@ use Payum\Core\Request\GetHumanStatus;
 
 class ConfirmEvent
 {
-    /**
-     * @var bool
-     */
-    protected $processIsRunning = false;
+    protected bool $processIsRunning = false;
 
-    /**
-     * @var Payum
-     */
-    protected $payum;
-
-    /**
-     * @var PaymentRepositoryInterface
-     */
-    protected $paymentRepository;
-
-    /**
-     * ConfirmEvent constructor.
-     *
-     * @param Payum                      $payum
-     * @param PaymentRepositoryInterface $paymentRepository
-     */
-    public function __construct(Payum $payum, PaymentRepositoryInterface $paymentRepository)
+    public function __construct(protected Payum $payum, protected PaymentRepositoryInterface $paymentRepository)
     {
-        $this->payum = $payum;
-        $this->paymentRepository = $paymentRepository;
     }
 
     /**
-     * @param OrderInterface $order
-     *
      * @throws \Payum\Core\Reply\ReplyInterface
      */
-    public function confirmByOrder(OrderInterface $order)
+    public function confirmByOrder(OrderInterface $order): void
     {
         $payments = $this->paymentRepository->findForPayable($order);
 
         $payment = null;
-        /** @var PaymentInterface $orderPayment */
         foreach ($payments as $orderPayment) {
 
-            if (!in_array($orderPayment->getState(), [Payment::STATE_AUTHORIZED, Payment::STATE_PROCESSING])) {
+            if (!in_array($orderPayment->getState(), [Payment::STATE_AUTHORIZED, Payment::STATE_PROCESSING], true)) {
                 continue;
             }
 
@@ -102,11 +78,9 @@ class ConfirmEvent
     }
 
     /**
-     * @param PaymentInterface $payment
-     *
      * @throws \Payum\Core\Reply\ReplyInterface
      */
-    public function confirmByPayment(PaymentInterface $payment)
+    public function confirmByPayment(PaymentInterface $payment): void
     {
         if (!in_array($payment->getState(), [Payment::STATE_AUTHORIZED, Payment::STATE_PROCESSING])) {
             return;

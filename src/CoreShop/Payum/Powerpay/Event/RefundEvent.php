@@ -19,26 +19,14 @@ use Payum\Core\Payum;
 
 class RefundEvent
 {
-    /**
-     * @var Payum
-     */
-    protected $payum;
-
-    /**
-     * ConfirmEvent constructor.
-     *
-     * @param Payum $payum
-     */
-    public function __construct(Payum $payum)
+    public function __construct(protected Payum $payum)
     {
-        $this->payum = $payum;
     }
 
     /**
-     * @param PaymentInterface $payment
      * @throws \Payum\Core\Reply\ReplyInterface
      */
-    public function refund(PaymentInterface $payment)
+    public function refund(PaymentInterface $payment): void
     {
         if ($payment->getState() !== Payment::STATE_COMPLETED) {
             return;

@@ -19,9 +19,6 @@ class PowerpayBundle extends AbstractPimcoreBundle
 {
     use PackageVersionTrait;
 
-    /**
-     * @inheritDoc
-     */
     protected function getComposerPackageName(): string
     {
         return 'coreshop/payum-powerpay-bundle';

@@ -19,8 +19,8 @@
         }
     ],
     "require": {
-        "php": "^7.0",
-        "dachcom-digital/payum-powerpay": "~1.0.0"
+        "php": "^8.0",
+        "dachcom-digital/payum-powerpay": "@dev"
     },
     "config": {
         "bin-dir": "bin"
@@ -31,9 +31,6 @@
         }
     },
     "extra": {
-        "branch-alias": {
-            "dev-master": "2.0-dev"
-        },
         "pimcore": {
             "bundles": [
                 "CoreShop\\Payum\\PowerpayBundle\\PowerpayBundle"
