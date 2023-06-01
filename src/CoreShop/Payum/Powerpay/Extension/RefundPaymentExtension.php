@@ -12,98 +12,64 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
-use CoreShop\Bundle\WorkflowBundle\History\HistoryLoggerInterface;
 use CoreShop\Component\Core\Model\PaymentInterface;
-use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
-use DachcomDigital\Payum\Powerpay\Request\Api\Confirm;
 use DachcomDigital\Payum\Powerpay\Request\Api\CreditAmount;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
+use Payum\Core\Model\Payment;
 use Payum\Core\Security\TokenInterface;
 
-final class RefundPaymentExtension implements ExtensionInterface
+final class RefundPaymentExtension extends AbstractExtension implements ExtensionInterface
 {
-    /**
-     * @var PaymentRepositoryInterface
-     */
-    private $paymentRepository;
-
-    /**
-     * @var HistoryLoggerInterface
-     */
-    private $orderHistoryLogger;
-
-    /**
-     * @param PaymentRepositoryInterface $paymentRepository
-     * @param HistoryLoggerInterface     $orderHistoryLogger
-     */
-    public function __construct(PaymentRepositoryInterface $paymentRepository, HistoryLoggerInterface $orderHistoryLogger)
-    {
-        $this->paymentRepository = $paymentRepository;
-        $this->orderHistoryLogger = $orderHistoryLogger;
-    }
-
-    /**
-     * @param Context $context
-     */
-    public function onPostExecute(Context $context)
+    public function onPostExecute(Context $context): void
     {
         $action = $context->getAction();
-
-        $previousActionClassName = get_class($action);
+        $previousActionClassName = is_object($action) ? get_class($action) : '';
 
         if (false === stripos($previousActionClassName, 'CreditAmountAction')) {
             return;
         }
 
-        /** @var Confirm $request */
         $request = $context->getRequest();
-        if (false === $request instanceof CreditAmount) {
+        if (!$request instanceof CreditAmount) {
             return;
         }
 
-        $payment = false;
+        $paymentEntity = null;
         if ($request->getToken() instanceof TokenInterface) {
             $paymentId = $request->getToken()->getDetails()->getId();
-            $payment = $this->paymentRepository->find($paymentId);
+            $paymentEntity = $this->assertCoreShopPaymentById($paymentId);
+        } elseif ($request->getFirstModel() instanceof Payment) {
+            $paymentEntity = $this->assertCoreShopPayment($request->getFirstModel());
         } elseif ($request->getFirstModel() instanceof PaymentInterface) {
-            $payment = $request->getFirstModel();
+            $paymentEntity = $request->getFirstModel();
         }
 
-        /** @var PaymentInterface $payment */
-        if (false === $payment instanceof PaymentInterface) {
+        if (!$paymentEntity instanceof PaymentInterface) {
             return;
         }
 
         $result = $request->getResult();
 
-        if (isset($result['credit_response_code']) && !empty($result['credit_response_code'])) {
-            if ($result['credit_response_code'] === '00') {
-                $description = '';
+        if (empty($result['credit_response_code'])) {
+            return;
+        }
+
+        if ($result['credit_response_code'] === '00') {
+
+            $description = '';
+            if (is_array($result)) {
                 foreach ($result as $lineTitle => $lineValue) {
                     $description .= '<strong>' . $lineTitle . ':</strong> ' . $lineValue . '<br>';
                 }
-
-                $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay Payment successfully refunded (via credit)', $description);
-
-            } else {
-                $this->orderHistoryLogger->log($payment->getOrder(), 'PowerPay refunding error. Response Code: ' . $result['credit_response_code']);
             }
+
+            $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay Payment successfully refunded (via credit)', $description);
+
+            return;
         }
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function onPreExecute(Context $context)
-    {
+        $this->orderHistoryLogger->log($paymentEntity->getOrder(), 'PowerPay refunding error. Response Code: ' . $result['credit_response_code']);
 
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function onExecute(Context $context)
-    {
     }
 }

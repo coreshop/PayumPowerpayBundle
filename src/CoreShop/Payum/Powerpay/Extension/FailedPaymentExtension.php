@@ -12,52 +12,40 @@
 
 namespace CoreShop\Payum\PowerpayBundle\Extension;
 
-use CoreShop\Component\Payment\Model\PaymentInterface;
+use CoreShop\Bundle\WorkflowBundle\History\HistoryLoggerInterface;
+use CoreShop\Component\Payment\Repository\PaymentRepositoryInterface;
 use DachcomDigital\Payum\Powerpay\Action\StatusAction;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use DachcomDigital\Payum\Powerpay\Request\Api\ReserveAmount;
 use Payum\Core\Extension\Context;
 use Payum\Core\Extension\ExtensionInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class FailedPaymentExtension implements ExtensionInterface
+final class FailedPaymentExtension extends AbstractExtension implements ExtensionInterface
 {
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
+    private TranslatorInterface $translator;
 
-    /**
-     * FailedPaymentExtension constructor.
-     *
-     * @param TranslatorInterface $translator
-     */
-    public function __construct(TranslatorInterface $translator)
-    {
+    public function __construct(
+        PaymentRepositoryInterface $paymentRepository,
+        HistoryLoggerInterface $orderHistoryLogger,
+        TranslatorInterface $translator
+    ) {
+        parent::__construct($paymentRepository, $orderHistoryLogger);
+
         $this->translator = $translator;
     }
 
-    /**
-     * @param Context $context
-     */
-    public function onPostExecute(Context $context)
+    public function onPostExecute(Context $context): void
     {
         $action = $context->getAction();
-        $previousActionClassName = get_class($action);
+        $previousActionClassName = is_object($action) ? get_class($action) : '';
 
         if (false === stripos($previousActionClassName, 'ReserveAmountAction')) {
             return;
         }
 
-        /** @var ReserveAmount $request */
         $request = $context->getRequest();
-        if (false === $request instanceof ReserveAmount) {
-            return;
-        }
-
-        /** @var PaymentInterface $payment */
-        $payment = $request->getPayment();
-        if (false === $payment instanceof PaymentInterface) {
+        if (!$request instanceof ReserveAmount) {
             return;
         }
 
@@ -72,19 +60,5 @@ final class FailedPaymentExtension implements ExtensionInterface
         }
 
         $request->setModel($details);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function onPreExecute(Context $context)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function onExecute(Context $context)
-    {
     }
 }
