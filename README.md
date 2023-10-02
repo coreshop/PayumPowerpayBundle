@@ -3,14 +3,14 @@ This Bundle activates the Powerpay PaymentGateway in CoreShop.
 It requires the [dachcom-digital/payum-powerpay](https://github.com/dachcom-digital/payum-powerpay) repository which will be installed automatically.
 
 ## Requirements
-CoreShop >= 2.0.0
+CoreShop >= 3.0.0
 
 ## Installation
 
 #### 1. Composer
 
 ```json
-    "coreshop/payum-powerpay-bundle": "~1.0.0"
+    "coreshop/payum-powerpay-bundle": "~2.0.0"
 ```
 
 #### 2. Activate
@@ -32,4 +32,5 @@ You'll see a success log in the order history log section.
 **Note**: This works only if a payment hasn't confirmed yet.
 
 ## Upgrade Notes
+- v2.0.0: CoreShop 3 Compatibility
 - v1.0.4: transmit phoneNumber
